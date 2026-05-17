@@ -42,4 +42,16 @@ public class ReservasService {
         // 4. Guardamos en MySQL y retornamos el resultado
         return reservasRepository.save(nuevaReserva);
     }
+
+    public ReservasModel confirmarEstadoReserva(Long idReserva, String nuevoEstado) {
+    // 1. Buscamos la reserva en la base de datos. Si no existe, lanzamos un error básico
+    ReservasModel reserva = reservasRepository.findById(idReserva)
+            .orElseThrow(() -> new RuntimeException("Reserva no encontrada con el ID: " + idReserva));
+    
+    // 2. Modificamos el estado (Ej: CONFIRMADA o CANCELADA)
+    reserva.setEstadoReserva(nuevoEstado.toUpperCase());
+    
+    // 3. Guardamos los cambios actualizados en MySQL
+    return reservasRepository.save(reserva);
+    }
 }

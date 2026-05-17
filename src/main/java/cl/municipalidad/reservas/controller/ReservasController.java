@@ -19,4 +19,13 @@ public class ReservasController {
         ReservasModel reservaGuardada = reservasService.crearReserva(request);
         return ResponseEntity.ok(reservaGuardada);
     }
+    // Actualizar el estado de una reserva (Invocado principalmente por ms-pagos)
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<ReservasModel> actualizarEstado(
+            @PathVariable("id") Long id,
+            @RequestParam("nuevoEstado") String nuevoEstado) {
+        
+        ReservasModel reservaActualizada = reservasService.confirmarEstadoReserva(id, nuevoEstado);
+        return ResponseEntity.ok(reservaActualizada);
+    }
 }

@@ -9,15 +9,16 @@ El proyecto fue desarrollado **desde cero** utilizando Spring Boot, adoptando un
 ## 🚀 Características Clave
 
 - **Conexión Automática:** Configurado para conectarse a una base de datos MySQL en Docker, aislando los datos con el parámetro `createDatabaseIfNotExist=true`.
-- **Comunicación entre Microservicios:** Integra `Spring Reactive WebClient` para consumir de forma síncrona el microservicio de catálogo (`ms-canchas` en el puerto `8081`).
+- **Comunicación entre Microservicios:** Integra `Spring Reactive WebClient` para consumir de forma síncrona el microservicio de catálogo (`ms-canchas` en el puerto `8081`) respetando las rutas en singular.
 - **Persistencia Robusta:** Uso de Spring Data JPA con Hibernate para la generación y actualización automática de esquemas de datos.
 - **Tolerancia a Fallos:** Implementa bloques de control (`try-catch`) en el cliente HTTP para asegurar que el flujo de reservas no se interrumpa si el catálogo de canchas se encuentra temporalmente inaccesible.
+- **Ciclo de Vida Dinámico:** Capacidad de actualizar los estados de la reserva (`PENDIENTE` -> `CONFIRMADA`) mediante integraciones externas.
 
 ---
 
 ## 📂 Arquitectura y Árbol de Directorios
 
-El proyecto sigue el estándar de diseño de Spring Boot, segmentando los Objetos de Transferencia de Datos (DTO) en subpaquetes especializados para solicitudes y respuestas:
+El proyecto sigue el estándar de diseño de Spring Boot, segmentando los Objetos de Transferencia de Datos (DTO) en subpaquetes especializados para solicitudes (requests) y respuestas (responses):
 
 ```text
 reservas/
@@ -79,7 +80,7 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 📡 API Endpoints
 1. Crear una nueva Reserva
-Permite registrar una intención de reserva para una cancha específica. Al nacer, el registro se almacena en estado PENDIENTE.
+Permite registrar una intención de reserva para una cancha específica. Al nacer, el registro se almacena en estado inicial PENDIENTE.
 
 URL: http://localhost:8083/api/v1/reservas
 
@@ -108,9 +109,30 @@ JSON
     "estadoReserva": "PENDIENTE",
     "nombreCanchaForaneo": "Cancha Principal de Pasto Sintético"
 }
-💡 Nota de Integración: El campo nombreCanchaForaneo se resuelve dinámicamente en tiempo de ejecución consultando al servicio externo ms-canchas (Puerto 8081).
+💡 Nota de Integración: El campo nombreCanchaForaneo se resuelve dinámicamente en tiempo de ejecución consultando al servicio externo ms-canchas (Puerto 8081) a través de la ruta /api/v1/cancha/{id}.
 
+2. Actualizar el Estado de una Reserva
+Endpoint diseñado para recibir la confirmación de pago desde otros módulos (como ms-pagos) y actualizar el estado del ciclo de vida de la reserva de forma síncrona.
+
+URL: http://localhost:8083/api/v1/reservas/{id}/estado
+
+Método HTTP: PUT
+
+Parámetros de URL (Query Params): nuevoEstado=CONFIRMADA
+
+Respuesta Exitosa (Ejemplo JSON Response - 200 OK):
+JSON
+{
+    "idReserva": 4,
+    "idCancha": 1,
+    "idUsuario": 1020,
+    "fechaReserva": "2026-05-20",
+    "horaInicio": "19:00:00",
+    "horaFin": "20:00:00",
+    "estadoReserva": "CONFIRMADA",
+    "nombreCanchaForaneo": "Cancha Principal de Pasto Sintético"
+}
 📝 Próximos Pasos en el Roadmap
-Incorporar filtros de seguridad perimetral interceptando tokens JWT emitidos por ms-auth.
+Configurar el enrutamiento perimetral con el API Gateway para heredar la validación de tokens JWT gestionada por ms-auth.
 
-Habilitar la comunicación asíncrona o reactiva con ms-pagos para actualizar el estado de PENDIENTE a CONFIRMADA una vez que la pasarela apruebe la transacción.
+Implementar lógica asíncrona mediante mensajería si el ecosistema requiere desacoplar el flujo de notificaciones post-reserva.
