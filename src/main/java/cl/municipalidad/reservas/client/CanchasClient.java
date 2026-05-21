@@ -1,31 +1,39 @@
 package cl.municipalidad.reservas.client;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-// CORREGIDO: Ahora apunta al nuevo subpaquete response
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import cl.municipalidad.reservas.dto.response.DtoCanchaResponse;
 
 @Component
 public class CanchasClient {
 
-    @Autowired
-    @Qualifier("webClientCanchas")
-    private WebClient webClient;
+    private static final Logger logger = LoggerFactory.getLogger(CanchasClient.class);
+    private final WebClient webClient;
 
-    // CORREGIDO: Retorna el DTO desde la ubicación correcta
-    public DtoCanchaResponse consultarCancha(Integer idCancha) {
-    try {
-        return webClient.get()
-                .uri("/api/v1/cancha/" + idCancha) // ¡CORREGIDO: Sin la "s"!
-                .retrieve()
-                .bodyToMono(DtoCanchaResponse.class)
-                .block(); 
-    } catch (Exception e) {
-        System.out.println("🚨 ERROR CRÍTICO WEBCLIENT: " + e.getMessage());
-        e.printStackTrace(); 
-        return null;
+    public CanchasClient(@Qualifier("webClientCanchas") WebClient webClient) {
+        this.webClient = webClient;
     }
+
+    public DtoCanchaResponse consultarCancha(Integer idCancha) {
+        try {
+            return webClient.get()
+                    // 🗺️ Ruta corregida para calzar con el @RequestMapping del CanchaController
+                    .uri("/api/v1/canchas/cancha/" + idCancha) 
+                    .retrieve()
+                    .bodyToMono(DtoCanchaResponse.class)
+                    .block(); 
+        } catch (WebClientResponseException.NotFound e) {
+            // Sabemos que la cancha no existe, lo registramos como advertencia
+            logger.warn("Cancha con ID {} no encontrada (404) en ms-canchas.", idCancha);
+            return null;
+        } catch (Exception e) {
+            // Error real de red, timeout, o 500 del servidor
+            logger.error("🚨 ERROR CRÍTICO WEBCLIENT al consultar cancha {}: {}", idCancha, e.getMessage(), e);
+            return null;
+        }
     }
 }

@@ -2,14 +2,16 @@ package cl.municipalidad.reservas.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "reservas")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReservasModel {
@@ -36,5 +38,6 @@ public class ReservasModel {
     @Column(nullable = false)
     private String estadoReserva; // PENDIENTE, CONFIRMADA, CANCELADA
 
-    private String nombreCanchaForaneo; // Guardaremos el nombre que WebClient traerá de ms-canchas
+    // No le ponemos nullable = false por si el ms-canchas falla
+    private String nombreCanchaForaneo; 
 }

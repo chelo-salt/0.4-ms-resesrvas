@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReservasRepository extends JpaRepository<ReservasModel, Long> {
-    // Listo, JPA hereda automáticamente todos los métodos de guardar, buscar y borrar.
+    // JPA hereda automáticamente todos los métodos de guardar, buscar y borrar.
 }
