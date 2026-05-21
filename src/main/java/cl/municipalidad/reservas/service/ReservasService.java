@@ -5,9 +5,13 @@ import cl.municipalidad.reservas.dto.request.DtoReservaRequest;
 import cl.municipalidad.reservas.dto.response.DtoCanchaResponse;
 import cl.municipalidad.reservas.model.ReservasModel;
 import cl.municipalidad.reservas.repository.ReservasRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ReservasService {
@@ -57,5 +61,26 @@ public class ReservasService {
         
         // Guardamos los cambios
         return reservasRepository.save(reserva);
+    }
+
+    /**
+     * 📊 Lógica analítica: Cuenta la cantidad total de reservas registradas en el rango.
+     */
+    public Integer contarReservasPorRango(LocalDate inicio, LocalDate fin) {
+        Integer conteo = reservasRepository.countByFechaReservaBetween(inicio, fin);
+        return conteo != null ? conteo : 0;
+    }
+
+    /**
+     * 🌟 Lógica analítica: Retorna el nombre de la cancha más arrendada del periodo.
+     */
+    public String obtenerCanchaEstrella(LocalDate inicio, LocalDate fin) {
+        // Le pasamos PageRequest.of(0, 1) para que funcione como un LIMIT 1 de SQL y devuelva solo la principal
+        List<String> resultados = reservasRepository.findCanchaEstrella(inicio, fin, PageRequest.of(0, 1));
+        
+        if (resultados != null && !resultados.isEmpty() && resultados.get(0) != null) {
+            return resultados.get(0);
+        }
+        return "Sin datos";
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping("/api/v1/reservas")
 public class ReservasController {
@@ -34,5 +36,25 @@ public class ReservasController {
         
         ReservasModel reservaActualizada = reservasService.confirmarEstadoReserva(id, nuevoEstado);
         return ResponseEntity.ok(reservaActualizada);
+    }
+
+    // 📊 ENDPOINT ANALÍTICO: Conteo de reservas en un rango de fechas
+    @GetMapping("/analitica/conteo")
+    public ResponseEntity<Integer> obtenerTotalReservas(
+            @RequestParam("fechaInicio") LocalDate fechaInicio,
+            @RequestParam("fechaFin") LocalDate fechaFin) {
+        
+        Integer total = reservasService.contarReservasPorRango(fechaInicio, fechaFin);
+        return ResponseEntity.ok(total);
+    }
+
+    // 🌟 ENDPOINT ANALÍTICO: Cancha más solicitada
+    @GetMapping("/analitica/cancha-estrella")
+    public ResponseEntity<String> obtenerCanchaEstrella(
+            @RequestParam("fechaInicio") LocalDate fechaInicio,
+            @RequestParam("fechaFin") LocalDate fechaFin) {
+        
+        String cancha = reservasService.obtenerCanchaEstrella(fechaInicio, fechaFin);
+        return ResponseEntity.ok(cancha);
     }
 }
