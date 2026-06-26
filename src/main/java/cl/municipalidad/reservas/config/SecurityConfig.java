@@ -29,6 +29,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // 🔓 Rutas de Swagger y OpenAPI liberadas explícitamente una por una
+                .requestMatchers("/api/v1/reservas/doc/**").permitAll()
+                .requestMatchers("/api/v1/reservas/v3/api-docs/**").permitAll()
+                .requestMatchers("/doc/**").permitAll()
+                .requestMatchers("/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui/**").permitAll()
+                .requestMatchers("/swagger-ui.html").permitAll() 
+                
+                // 🔒 Cualquier otra petición requerirá obligatoriamente token de autenticación
                 .anyRequest().authenticated() 
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
@@ -46,7 +55,6 @@ public class SecurityConfig {
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
     }
-
 
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
